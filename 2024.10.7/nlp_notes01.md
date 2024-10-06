@@ -290,7 +290,8 @@ cls（classification）：用来表示分类，和其他所有token做交互，�
 ● bert训练时有mask，微调时没有
 
 bert序列的第一个词永远是cls，sep来区分两个句子
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1709606394573-a21439c3-0e32-44aa-9cfc-e3d0162cac02.png?x-oss-process=image%2Fformat%2Cwebp
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1709606394573-a21439c3-0e32-44aa-9cfc-e3d0162cac02.png?x-oss-process=image%2Fformat%2Cwebp)
+
 bert减轻了之前语言模型的单向限制，使用了一个MLM(masked language model，带掩码的语言模型)，即训练了一个双向的transformer，所以bert不能做机器翻译，不适合生成任务
 BERT用transformer做编码器
 bert的预训练：在没有标注的数据上训练
@@ -367,6 +368,7 @@ https://cdn.nlark.com/yuque/0/2024/png/34701129/1711266467540-46c34834-c887-4a83
 ● 将输入数据变成模型可以处理的向量，描述原始数据所包含的信息
 ● embedding层的输出可以是：word embedding（文本任务）
 
+```python
 import math
 import torch
 import torch.nn as nn
@@ -390,6 +392,7 @@ class Embeddings(nn.Module):
         '''
         embedds=self.lut(x)
         return embedds*math.sqrt(self.d_model)
+```
 ##### 位置编码
 transformer是同时输入，并行推理，所以缺失了位置信息
 位置编码可以是固定的，也可以是可学习的参数
@@ -398,7 +401,7 @@ transformer是同时输入，并行推理，所以缺失了位置信息
 这里采用固定的位置编码：
 https://cdn.nlark.com/yuque/0/2024/png/34701129/1712749248758-6a596b6c-f7bf-419c-8c4f-4cd363c28c4d.png?x-oss-process=image%2Fformat%2Cwebp
 位置编码长度=embedding层，设置为512
-
+```python
 #位置编码模块
 class PositionalEncoding(nn.Module):
     def __init__(self,d_model,dropout,max_len=5000):
@@ -424,6 +427,7 @@ class PositionalEncoding(nn.Module):
     def forward(self,x):
         x=x+Variable(self.pe[:,:x.size(1)],requires_grad=False)
         return self.dropout(x)
+```
 ##### encoder
 推理时encoder只推理一次，decoder类似rnn不断循环推理，生成预测结果
 https://cdn.nlark.com/yuque/0/2024/png/34701129/1712753640512-ebe11f6e-1045-4b50-ad80-c3ca1a3d38b0.png?x-oss-process=image%2Fformat%2Cwebp
@@ -431,7 +435,7 @@ https://cdn.nlark.com/yuque/0/2024/png/34701129/1712753640512-ebe11f6e-1045-4b50
 encoder的作用：对输入进行特征提取，为解码器提供语义信息
 https://cdn.nlark.com/yuque/0/2024/webp/34701129/1712991201092-84f1dc0d-2245-4784-8bfc-c8c43d9e409c.webp?x-oss-process=image%2Fresize%2Cw_713%2Climit_0
 注意transformer encoder decoder是自注意力
-
+```python
 #encoder
 #定义一个clones函数，便于将某个结构复制n份
 def clones(module,N):
@@ -480,6 +484,7 @@ class EncoderLayer(nn.Module):
         x=self.sublayer[0](x,lambda x:self.self_attn(x,x,x,mask))
         z=self.sublayer[1](x,self.feed_forward)
         return z
+```
 ##### 注意力机制
 **注意力计算**：需要三个输入qkv，通过公式得到注意力的计算结果
 https://cdn.nlark.com/yuque/0/2024/png/34701129/1712758077903-34f18f01-072d-4880-ab00-8b3c4b82bf75.png?x-oss-process=image%2Fformat%2Cwebp
@@ -490,7 +495,8 @@ attention score：softmax（）这部分
 https://cdn.nlark.com/yuque/0/2024/webp/34701129/1712758156152-f9447409-d9de-4c96-9e99-706003022859.webp?x-oss-process=image%2Fresize%2Cw_278%2Climit_0
 当前时刻的注意力计算结果，是value的加权和
 权重：query和key做内积得到相似度
-#注意力机制
+```python
+# 注意力机制
 def attention(q,k,v,mask=None,dropout=None):
     # 取query最后一维的大小，对应词嵌入维度
     d_k=q.size(-1)
@@ -509,8 +515,10 @@ def attention(q,k,v,mask=None,dropout=None):
     if dropout is not None:
         p_attn=dropout(p_attn)
     return torch.matmul(p_attn,v),p_attn
+```
 ##### 多头注意力
 不同的头可以关注到同一个词不同的语义，比如bank：银行、河岸
+```python
 #多头注意力
 class MultiHeadAttention(nn.Module):
     def __init__(self,num_heads,d_model,dropout=0.1):
@@ -547,11 +555,13 @@ class MultiHeadAttention(nn.Module):
                 .view(nbatches,-1,self.d_k*self.num_heads)
             # 使用linears中的最后一个线性变换（wo矩阵）得到最终的多头注意力的输出
             return self.linears[-1](x)
+```
 ##### 前馈全连接层
 包含两个线性变换和一个ReLU
 https://cdn.nlark.com/yuque/0/2024/png/34701129/1712765690061-d95c9652-06e5-445d-a555-623f362e80d1.png?x-oss-process=image%2Fformat%2Cwebp
 attention模块中每个时刻的输出都整合了所有时刻的信息
 但是ffn每个时刻与其他时刻的信息无关
+```python
 #前馈全连接层
 class PositionwiseFeedForward(nn.Module):
     def __init__(self,d_model,d_ff,dropout=0.1):
@@ -580,6 +590,7 @@ class LayerNorm(nn.Module):
         mean=x.mean(-1,keepdim=True)
         std=x.std(-1,keepdim=True)
         return self.a_2*(x-mean)/(std+self.eps)+self.b_2
+```
 ##### 掩码
 掩码：一般只有0和1，代表遮掩和不遮掩
 掩码的作用：
@@ -590,6 +601,7 @@ class LayerNorm(nn.Module):
 0：mask的位置，1：保留的位置
 掩码通常设置为上三角矩阵，其中所有对角线以下的元素都是0，以确保模型在预测时不会接收到未来的信息
 
+```python
 #生成屏蔽未来信息的mask掩码张量：attention mask
 #size是掩码张量最后两个维度的大小
 def subsequent_mask(size):
@@ -604,13 +616,14 @@ def subsequent_mask(size):
     subsequent_mask=np.triu(np.ones(attn_shape),k=1).astype('uint8')
     # 将numpy转换成tensor
     return torch.from_numpy(subsequent_mask)==0
+```
 ##### decoder
 解码器作用：根据编码器结果及上一次预测结果，预测下一个结果
 解码器也是n个相同layer堆叠
 细节：
 ● masked multi-head attention和编码器中的完全一致
 ● 第二个多头注意力中，q来自上一个子层，k和v来自编码器的输出
-
+```python
 #decoder
 class Decoder(nn.Module):
     def __init__(self,layer,N):
@@ -654,11 +667,12 @@ class DecoderLayer(nn.Module):
         x=self.sublayer[1](x,lambda x:self.src_attn(x,m,m,src_mask))
         # 最后一个层，FFN
         return self.sublayer[2](x,self.feed_forward)
-
+```
 
 ##### 模型输出
 https://cdn.nlark.com/yuque/0/2024/png/34701129/1712796745059-ac826651-4268-4187-91e1-087b4a66bbb6.png?x-oss-process=image%2Fformat%2Cwebp
 linear：线性变换，转换维度，转换后的维度对应着输出类别的个数，如果是翻译任务，就对应的是字典的大小
+```python
 #模型输出
 class Generator(nn.Module):
     def __init__(self,d_model,vocab):
@@ -712,6 +726,7 @@ def make_model(src_vocab,tgt_vocab,N=6,d_model=512,d_ff=2048,num_heads=8,dropout
         if p.dim()>1:
             nn.init.xavier_uniform_(p)
     return model
+```
 ### 李宏毅transformer
 ##### self-attention
 rnn输入部分：
