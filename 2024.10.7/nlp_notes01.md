@@ -371,7 +371,7 @@ import math
 import torch
 import torch.nn as nn
 
-# 构建embedding层
+#构建embedding层
 class Embeddings(nn.Module):
     '''
     d_model:word embedding的维度
@@ -399,7 +399,7 @@ transformer是同时输入，并行推理，所以缺失了位置信息
 https://cdn.nlark.com/yuque/0/2024/png/34701129/1712749248758-6a596b6c-f7bf-419c-8c4f-4cd363c28c4d.png?x-oss-process=image%2Fformat%2Cwebp
 位置编码长度=embedding层，设置为512
 
-# 位置编码模块
+#位置编码模块
 class PositionalEncoding(nn.Module):
     def __init__(self,d_model,dropout,max_len=5000):
         super(PositionalEncoding, self).__init__()
@@ -431,8 +431,9 @@ https://cdn.nlark.com/yuque/0/2024/png/34701129/1712753640512-ebe11f6e-1045-4b50
 encoder的作用：对输入进行特征提取，为解码器提供语义信息
 https://cdn.nlark.com/yuque/0/2024/webp/34701129/1712991201092-84f1dc0d-2245-4784-8bfc-c8c43d9e409c.webp?x-oss-process=image%2Fresize%2Cw_713%2Climit_0
 注意transformer encoder decoder是自注意力
-# encoder
-# 定义一个clones函数，便于将某个结构复制n份
+
+#encoder
+#定义一个clones函数，便于将某个结构复制n份
 def clones(module,N):
     return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
 
@@ -448,7 +449,7 @@ class Encoder(nn.Module):
             x=layer(x,mask)
         return self.norm(x)
 
-# 残差连接实现
+#残差连接实现
 class SublayerConnection(nn.Module):
     def __init__(self,size,dropout):
         super(SublayerConnection, self).__init__()
@@ -489,7 +490,7 @@ attention score：softmax（）这部分
 https://cdn.nlark.com/yuque/0/2024/webp/34701129/1712758156152-f9447409-d9de-4c96-9e99-706003022859.webp?x-oss-process=image%2Fresize%2Cw_278%2Climit_0
 当前时刻的注意力计算结果，是value的加权和
 权重：query和key做内积得到相似度
-# 注意力机制
+#注意力机制
 def attention(q,k,v,mask=None,dropout=None):
     # 取query最后一维的大小，对应词嵌入维度
     d_k=q.size(-1)
@@ -510,7 +511,7 @@ def attention(q,k,v,mask=None,dropout=None):
     return torch.matmul(p_attn,v),p_attn
 ##### 多头注意力
 不同的头可以关注到同一个词不同的语义，比如bank：银行、河岸
-# 多头注意力
+#多头注意力
 class MultiHeadAttention(nn.Module):
     def __init__(self,num_heads,d_model,dropout=0.1):
         super(MultiHeadAttention, self).__init__()
@@ -551,7 +552,7 @@ class MultiHeadAttention(nn.Module):
 https://cdn.nlark.com/yuque/0/2024/png/34701129/1712765690061-d95c9652-06e5-445d-a555-623f362e80d1.png?x-oss-process=image%2Fformat%2Cwebp
 attention模块中每个时刻的输出都整合了所有时刻的信息
 但是ffn每个时刻与其他时刻的信息无关
-# 前馈全连接层
+#前馈全连接层
 class PositionwiseFeedForward(nn.Module):
     def __init__(self,d_model,d_ff,dropout=0.1):
         super(PositionwiseFeedForward, self).__init__()
@@ -563,7 +564,7 @@ class PositionwiseFeedForward(nn.Module):
     def forward(self,x):
         return self.w_2(self.dropout(F.relu(self.w_1(x))))
 ##### norm层
-# Norm层:将数值规范在合理范围内
+#Norm层:将数值规范在合理范围内
 class LayerNorm(nn.Module):
     def __init__(self,feature_size,eps=1e-6):
         # feature_size：词嵌入的维度
@@ -588,8 +589,9 @@ class LayerNorm(nn.Module):
 屏蔽掉未来信息：attention会获取所有时刻的信息，需要屏蔽掉未来信息
 0：mask的位置，1：保留的位置
 掩码通常设置为上三角矩阵，其中所有对角线以下的元素都是0，以确保模型在预测时不会接收到未来的信息
-# 生成屏蔽未来信息的mask掩码张量：attention mask
-# size是掩码张量最后两个维度的大小
+
+#生成屏蔽未来信息的mask掩码张量：attention mask
+#size是掩码张量最后两个维度的大小
 def subsequent_mask(size):
     attn_shape=(1,size,size)
     # 用np.ones向这个shape中添加1，形成上三角矩阵
@@ -608,7 +610,8 @@ def subsequent_mask(size):
 细节：
 ● masked multi-head attention和编码器中的完全一致
 ● 第二个多头注意力中，q来自上一个子层，k和v来自编码器的输出
-# decoder
+
+#decoder
 class Decoder(nn.Module):
     def __init__(self,layer,N):
         super(Decoder, self).__init__()
@@ -656,7 +659,7 @@ class DecoderLayer(nn.Module):
 ##### 模型输出
 https://cdn.nlark.com/yuque/0/2024/png/34701129/1712796745059-ac826651-4268-4187-91e1-087b4a66bbb6.png?x-oss-process=image%2Fformat%2Cwebp
 linear：线性变换，转换维度，转换后的维度对应着输出类别的个数，如果是翻译任务，就对应的是字典的大小
-# 模型输出
+#模型输出
 class Generator(nn.Module):
     def __init__(self,d_model,vocab):
         super(Generator, self).__init__()
@@ -665,7 +668,7 @@ class Generator(nn.Module):
     def forward(self,x):
         return F.log_softmax(self.proj(x),dim=-1)
 ##### 结构搭建
-# 模型构建
+#模型构建
 class EncoderDecoder(nn.Module):
     def __init__(self,encoder,decoder,src_embed,tgt_embed,generator):
         super(EncoderDecoder, self).__init__()
