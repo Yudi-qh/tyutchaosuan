@@ -303,8 +303,7 @@ BERT模型的特点包括：
 2. 预训练方法：BERT通过结合Masked LM和NSP两种预训练任务来实现高效的学习。在Masked MLM任务中，模型需要预测被遮挡的单词，而在NSP任务中，模型需要判断给定的两个句子是否连续。
 
 ## transformer
-
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1711262089931-bb49dd83-9d8a-4fc6-bb65-2f0ae100fc75.png?x-oss-process=image%2Fformat%2Cwebp
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1711262089931-bb49dd83-9d8a-4fc6-bb65-2f0ae100fc75.png?x-oss-process=image%2Fformat%2Cwebp)
 
 ● rnn难以并行计算，序列变长，前面的历史信息可能会丢掉
 ● 自回归：过去时刻的输出成为当前时刻的输入
@@ -330,36 +329,40 @@ transformer是第一个完全基于注意力机制来做encoder到decoder的架�
 即对于输入的token，对于任何一个词，将其映射成对应的向量
 给定一句话，把顺序打乱，atttention出来的结果一样
 即attention不包含时序信息，但rnn包含(上一个时刻的输出作为下一个时刻的输入)
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1709052074174-a5dca84e-f402-4712-aa5f-c020fa533037.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_610%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1709052074174-a5dca84e-f402-4712-aa5f-c020fa533037.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_610%2Climit_0)
 
 编码器：对第i个元素抽特征时，可以看到整个序列里面的所有元素，解码器：掩码使得不能看到i后面的元素
 注意力机制
 #### 注意力机制
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1709052993733-611ce7dc-4b52-4539-bf87-a059636c1336.png?x-oss-process=image%2Fformat%2Cwebp
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1709052993733-611ce7dc-4b52-4539-bf87-a059636c1336.png?x-oss-process=image%2Fformat%2Cwebp
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1709053025695-6150f2d8-64b6-414b-8515-3ccdbfdccc04.png?x-oss-process=image%2Fformat%2Cwebp
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1709271233630-2a870f8c-815c-4255-9dbb-f252f0cbbf41.png?x-oss-process=image%2Fformat%2Cwebp
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1709052993733-611ce7dc-4b52-4539-bf87-a059636c1336.png?x-oss-process=image%2Fformat%2Cwebp)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1709052993733-611ce7dc-4b52-4539-bf87-a059636c1336.png?x-oss-process=image%2Fformat%2Cwebp)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1709053025695-6150f2d8-64b6-414b-8515-3ccdbfdccc04.png?x-oss-process=image%2Fformat%2Cwebp
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1709271233630-2a870f8c-815c-4255-9dbb-f252f0cbbf41.png?x-oss-process=image%2Fformat%2Cwebp
+)
 
 每一个value的权重是通过value对应的key和query的相似度算来的
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1709273011891-08764cb8-f76a-4029-84d2-dcf6e780031a.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1709273011891-08764cb8-f76a-4029-84d2-dcf6e780031a.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0)
+
 masked使得该时刻之后的输出的权重为0 
 #### 多头注意力
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1710289722849-903a707d-ebe1-4562-b0fe-b776146bdaa7.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1710289722849-903a707d-ebe1-4562-b0fe-b776146bdaa7.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0)
+
 key，value，query都是一个长为d的向量，通过一个全连接层映射到低维
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1710290156848-4330bd3d-5157-4d63-ae85-549318485fb7.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1710290156848-4330bd3d-5157-4d63-ae85-549318485fb7.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0)
 
 ## transformer搭建
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1711262501103-02860d05-b711-4084-bfd8-386db816b107.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_918%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1711262501103-02860d05-b711-4084-bfd8-386db816b107.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_918%2Climit_0)
 
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1711262593663-a59fb201-6c62-4736-b6e3-5a7192d5628f.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1711262593663-a59fb201-6c62-4736-b6e3-5a7192d5628f.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0)
 
 decoder是不能并行的，因为要根据之前的输出预测输入，为了解决引入了teacher forcing：将整个标签全部输入，然后mask
-
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1711265898777-43e6b86f-a550-48ab-9a90-8465bbe127c2.png?x-oss-process=image%2Fformat%2Cwebp
-
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1711266338962-d5f34676-ac4c-465d-85dd-4b95bea35f1c.png?x-oss-process=image%2Fformat%2Cwebp
-
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1711266467540-46c34834-c887-4a83-9d2d-bf44575b96f3.png?x-oss-process=image%2Fformat%2Cwebp
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1711265898777-43e6b86f-a550-48ab-9a90-8465bbe127c2.png?x-oss-process=image%2Fformat%2Cwebp
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1711266338962-d5f34676-ac4c-465d-85dd-4b95bea35f1c.png?x-oss-process=image%2Fformat%2Cwebp
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1711266467540-46c34834-c887-4a83-9d2d-bf44575b96f3.png?x-oss-process=image%2Fformat%2Cwebp
+)
 
 
 ### 阿里云transformer搭建
@@ -399,7 +402,9 @@ transformer是同时输入，并行推理，所以缺失了位置信息
 最终模型的输入是若干个时刻对应的embedding，每个时刻对应一个embedding，既包含了本身的语义信息，也包含了当前时刻在整个句子中的位置信息
 
 这里采用固定的位置编码：
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712749248758-6a596b6c-f7bf-419c-8c4f-4cd363c28c4d.png?x-oss-process=image%2Fformat%2Cwebp
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712749248758-6a596b6c-f7bf-419c-8c4f-4cd363c28c4d.png?x-oss-process=image%2Fformat%2Cwebp
+)
+
 位置编码长度=embedding层，设置为512
 ```python
 #位置编码模块
@@ -430,10 +435,14 @@ class PositionalEncoding(nn.Module):
 ```
 ##### encoder
 推理时encoder只推理一次，decoder类似rnn不断循环推理，生成预测结果
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712753640512-ebe11f6e-1045-4b50-ad80-c3ca1a3d38b0.png?x-oss-process=image%2Fformat%2Cwebp
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712753640512-ebe11f6e-1045-4b50-ad80-c3ca1a3d38b0.png?x-oss-process=image%2Fformat%2Cwebp
+)
+
 最开始的时候，将编码器提取的特征以及一个句子起始符传给decoder，decoder会输出第一个单词I，然后将第一个单词I输入给decoder，再预测下一个单词love,再将 I love喂给decoder
 encoder的作用：对输入进行特征提取，为解码器提供语义信息
-https://cdn.nlark.com/yuque/0/2024/webp/34701129/1712991201092-84f1dc0d-2245-4784-8bfc-c8c43d9e409c.webp?x-oss-process=image%2Fresize%2Cw_713%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/webp/34701129/1712991201092-84f1dc0d-2245-4784-8bfc-c8c43d9e409c.webp?x-oss-process=image%2Fresize%2Cw_713%2Climit_0
+)
+
 注意transformer encoder decoder是自注意力
 ```python
 #encoder
@@ -487,12 +496,16 @@ class EncoderLayer(nn.Module):
 ```
 ##### 注意力机制
 **注意力计算**：需要三个输入qkv，通过公式得到注意力的计算结果
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712758077903-34f18f01-072d-4880-ab00-8b3c4b82bf75.png?x-oss-process=image%2Fformat%2Cwebp
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712758077903-34f18f01-072d-4880-ab00-8b3c4b82bf75.png?x-oss-process=image%2Fformat%2Cwebp
+)
+
 attention score：softmax（）这部分
 为的维度大小。这个除法被称为Scale。当很大时，的乘法结果方差变大，进行Scale可以使方差变小，训练时梯度更新更稳定。
 即scale用于防止点积结果过大，避免梯度消失或爆炸
 计算流程图：
-https://cdn.nlark.com/yuque/0/2024/webp/34701129/1712758156152-f9447409-d9de-4c96-9e99-706003022859.webp?x-oss-process=image%2Fresize%2Cw_278%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/webp/34701129/1712758156152-f9447409-d9de-4c96-9e99-706003022859.webp?x-oss-process=image%2Fresize%2Cw_278%2Climit_0
+)
+
 当前时刻的注意力计算结果，是value的加权和
 权重：query和key做内积得到相似度
 ```python
@@ -558,7 +571,9 @@ class MultiHeadAttention(nn.Module):
 ```
 ##### 前馈全连接层
 包含两个线性变换和一个ReLU
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712765690061-d95c9652-06e5-445d-a555-623f362e80d1.png?x-oss-process=image%2Fformat%2Cwebp
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712765690061-d95c9652-06e5-445d-a555-623f362e80d1.png?x-oss-process=image%2Fformat%2Cwebp
+)
+
 attention模块中每个时刻的输出都整合了所有时刻的信息
 但是ffn每个时刻与其他时刻的信息无关
 ```python
@@ -670,7 +685,9 @@ class DecoderLayer(nn.Module):
 ```
 
 ##### 模型输出
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712796745059-ac826651-4268-4187-91e1-087b4a66bbb6.png?x-oss-process=image%2Fformat%2Cwebp
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712796745059-ac826651-4268-4187-91e1-087b4a66bbb6.png?x-oss-process=image%2Fformat%2Cwebp
+)
+
 linear：线性变换，转换维度，转换后的维度对应着输出类别的个数，如果是翻译任务，就对应的是字典的大小
 ```python
 #模型输出
@@ -732,7 +749,9 @@ def make_model(src_vocab,tgt_vocab,N=6,d_model=512,d_ff=2048,num_heads=8,dropout
 rnn输入部分：
 把一个句子中的每个词都表示成一个向量，方法：one-hot encoding or word embedding
 one-hot encoding的缺点：不包含语义信息，看不到类别之间的联系，如这里的狗和猫都是动物
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712904226918-96c9a495-01d4-4e36-bf60-801402aaeb3b.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712904226918-96c9a495-01d4-4e36-bf60-801402aaeb3b.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0)
+
+
 每个句子就是一个不同长度的向量的集合
 word embedding：给每一个词一个包含语义信息的向量
 
@@ -743,26 +762,39 @@ rnn输出部分：
 
 self-attention：
 self-attention会将整个sequence输入，输入几个向量就输出几个向量，输出的向量考虑了整个句子的信息
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712904884388-b079d7a6-fc12-44e4-a584-103b330a1773.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712905161014-a3004f3d-b0ed-44fc-843b-992326ab1d33.png?x-oss-process=image%2Fformat%2Cwebp
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712905611767-99010813-0546-4a77-8251-21295e41021f.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712905533278-50005152-afdf-49b3-8d5e-70f6e4072905.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712904884388-b079d7a6-fc12-44e4-a584-103b330a1773.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712905161014-a3004f3d-b0ed-44fc-843b-992326ab1d33.png?x-oss-process=image%2Fformat%2Cwebp
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712905611767-99010813-0546-4a77-8251-21295e41021f.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712905533278-50005152-afdf-49b3-8d5e-70f6e4072905.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+
 
 记得还要自己和自己计算相似度
 这里softmax可以被替换成别的激活函数
 ● 得到α'之后，要根据attention score抽取内容，即α分别*Wv矩阵得到v
 ● 然后让v和α'（attention score）相乘加权求和，即最终输出一个加权和
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712905898535-891de5cb-92a5-431b-bac2-e5128bd820a0.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906056770-90897abd-e514-49be-9743-5686515b58d3.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712905898535-891de5cb-92a5-431b-bac2-e5128bd820a0.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906056770-90897abd-e514-49be-9743-5686515b58d3.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+
 
 输出向量b是同时计算出来的
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906344799-896d1cde-533f-4217-80f4-5006d265713f.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906344799-896d1cde-533f-4217-80f4-5006d265713f.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+
 
 attention score的计算：
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906544287-943eb86e-5c59-4b1f-b1e2-91d788343583.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906758301-81044956-3e8b-4997-bd4a-a0aada6bc608.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906835683-9262e280-8b9e-46cb-9a85-2d840004688e.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906895341-c6da7f8f-d30f-452e-8199-62df2acc476c.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906544287-943eb86e-5c59-4b1f-b1e2-91d788343583.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906758301-81044956-3e8b-4997-bd4a-a0aada6bc608.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906835683-9262e280-8b9e-46cb-9a85-2d840004688e.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712906895341-c6da7f8f-d30f-452e-8199-62df2acc476c.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
 
 
 wqkv三个矩阵是可学习的参数
@@ -770,42 +802,51 @@ wqkv三个矩阵是可学习的参数
 head：超参数
 多头注意力：一个词输入对应多个qkv，即多义词
 q1之和k1算，不考虑k2，1对1,2对2
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712907230178-9ab55cc4-a99f-4981-9a99-bec1d1be40c5.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712907230178-9ab55cc4-a99f-4981-9a99-bec1d1be40c5.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+
 positional encoding
 位置编码可以是固定的(用公式计算)，也可以是learnable parameter
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712983423120-3a8e1a52-38b2-4485-84d2-08dfc457f047.png?x-oss-process=image%2Fformat%2Cwebp
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712983463977-9fd52c8a-3b58-45a1-b727-9b02cb0f8fd7.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712983590344-75f6046f-804b-47c8-97aa-46c10700057e.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712983423120-3a8e1a52-38b2-4485-84d2-08dfc457f047.png?x-oss-process=image%2Fformat%2Cwebp
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712983463977-9fd52c8a-3b58-45a1-b727-9b02cb0f8fd7.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712983590344-75f6046f-804b-47c8-97aa-46c10700057e.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
 
 
 rnn无法并行处理，而self-attention可以同时输出，速度更快
 ##### transformer
 transformer是一个seq2seq的model，主要处理输出和输入不等长的问题，如机器翻译
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712984868495-a157635f-91fd-4262-ac6d-1ba12deeadec.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_666%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712984868495-a157635f-91fd-4262-ac6d-1ba12deeadec.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_666%2Climit_0
+)
+
 BOS：begin of sentence
 ##### masked attention
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712985420616-d034798e-dd70-4667-ac71-bbff8f180e4c.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712985420616-d034798e-dd70-4667-ac71-bbff8f180e4c.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+
 q2只和k1和k2做计算
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712985679023-b08ca5e3-f5ea-48e7-80ac-7c6e25158e46.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712985679023-b08ca5e3-f5ea-48e7-80ac-7c6e25158e46.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+
 NAT：non-atuoregressive model
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712985834073-5f208005-b3a0-4aab-a33f-1a30e35b1ead.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712985834073-5f208005-b3a0-4aab-a33f-1a30e35b1ead.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+
 FC：fully connected Network
 ##### 交叉注意力
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712987461689-cbb1ec54-0a62-45e4-b047-9a8cfff38e44.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712987708731-181e0a38-0c86-4fce-ab01-985e37705d55.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712987461689-cbb1ec54-0a62-45e4-b047-9a8cfff38e44.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712987708731-181e0a38-0c86-4fce-ab01-985e37705d55.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_937%2Climit_0
+)
+
 
 即query来自于decoder，key和value来自于encoder
 transformer之前就有了cross-attention，但没有self-attention
 交叉注意力可以有好几种方式
-https://cdn.nlark.com/yuque/0/2024/png/34701129/1712987905167-dbc9a907-41e9-4081-a1cd-1df14d90d2cc.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_1200%2Climit_0
-
-
-[BERT](https://www.yuque.com/yuqueyonghuftqtcn/th8glr/iftdmwgr7ia2zwrk)
-
-[transformer](https://www.yuque.com/yuqueyonghuftqtcn/th8glr/cq3rqcp2tavghvre)
-
-[transformer搭建](https://www.yuque.com/yuqueyonghuftqtcn/th8glr/vww6qloe659evnfr)
-
+![](https://cdn.nlark.com/yuque/0/2024/png/34701129/1712987905167-dbc9a907-41e9-4081-a1cd-1df14d90d2cc.png?x-oss-process=image%2Fformat%2Cwebp%2Fresize%2Cw_1200%2Climit_0
+)
 
 
 ## 剧本角色情感识别
