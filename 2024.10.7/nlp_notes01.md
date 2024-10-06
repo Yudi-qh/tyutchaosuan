@@ -276,6 +276,493 @@ _<u>LSTM：长短时记忆网络</u>_
 ### MLM（masked LM）
 MLM是bert核心的预训练任务
 
+### Bert
+● pre-training：预训练，在一个数据集上预训练一个模型，再用到别的任务(training)上
+● sentence-level：句子和句子之间
+● token-level：词和词之间
+● 自注意力机制没有可学习参数，但是多头注意力会把k,v,q分别做一次投影
+● 图片增强为了防止过拟合
+● 普通语言模型：根据上文预测下文
+● wordpiece：如果一个词出现概率不大，就把它切开看子序列（词根），取其中经常出现的子序列即可
+
+BERT特性
+cls（classification）：用来表示分类，和其他所有token做交互，获取的是整个序列的信息
+● bert训练时有mask，微调时没有
+
+bert序列的第一个词永远是cls，sep来区分两个句子
+
+bert减轻了之前语言模型的单向限制，使用了一个MLM(masked language model，带掩码的语言模型)，即训练了一个双向的transformer，所以bert不能做机器翻译，不适合生成任务
+BERT用transformer做编码器
+bert的预训练：在没有标注的数据上训练
+bert的微调：权重初始化成预训练中间得到的权重，所有的权重在微调时都会参与训练，用的是标注的数据
+
+它是一种基于双向Transformer编码器进行预训练的语言模型，能够有效地捕捉词语和句子级别的representation。BERT模型的创新之处在于其预训练方法和任务设计，其中包括使用Masked Language Model（MLM）和Next Sentence Prediction（NSP）两种方法来捕捉词语和句子级别的representation。
+BERT模型的特点包括：
+1. 双向Transformer编码器：BERT利用双向Transformer编码器来进行预训练，这比传统的单向RNN或LSTM模型更有效，因为它可以同时考虑单词前后的上下文信息。
+2. 预训练方法：BERT通过结合Masked LM和NSP两种预训练任务来实现高效的学习。在Masked MLM任务中，模型需要预测被遮挡的单词，而在NSP任务中，模型需要判断给定的两个句子是否连续。
+
+### transformer
+
+● rnn难以并行计算，序列变长，前面的历史信息可能会丢掉
+● 自回归：过去时刻的输出成为当前时刻的输入
+● 不同的注意力机制算法不同
+● 权重等价于query和key的相似度，输出就是value的加权和 
+● additive attention：加型注意力，处理key和query不等长的情况
+● 注意力机制一次能看到全部输入
+● 输入的词就是token
+● attention与序列信息无关
+
+transformer是第一个完全基于注意力机制来做encoder到decoder的架构的模型
+矩阵乘法很好做并行
+transformer特点
+● 摒弃了CNN和RNN,使用了attention注意力机制，自动捕捉输入序列不同位置的相对关联，擅长处理长文本，可以高度并行，训练速度快
+自注意力机制
+即 key,value,query是同一个，就是自己本身
+
+编码器：
+输出就是输入的加权和，权重来自于自己本身和其他向量的相似度(无多头和投影时），权重即query和key之间的距离
+ transformer的编码器和解码器都是自注意力机制
+输入的序列，每一个词就是一个position
+embedding
+即对于输入的token，对于任何一个词，将其映射成对应的向量
+给定一句话，把顺序打乱，atttention出来的结果一样
+即attention不包含时序信息，但rnn包含(上一个时刻的输出作为下一个时刻的输入)
+
+
+编码器：对第i个元素抽特征时，可以看到整个序列里面的所有元素，解码器：掩码使得不能看到i后面的元素
+注意力机制
+
+
+
+
+每一个value的权重是通过value对应的key和query的相似度算来的
+
+masked使得该时刻之后的输出的权重为0 
+多头注意力
+
+key，value，query都是一个长为d的向量，通过一个全连接层映射到低维
+
+### transformer搭建
+
+
+decoder是不能并行的，因为要根据之前的输出预测输入，为了解决引入了teacher forcing：将整个标签全部输入，然后mask
+
+
+
+
+阿里云transformer搭建
+模型输入：embedding和positional embedding
+embedding层
+● 将输入数据变成模型可以处理的向量，描述原始数据所包含的信息
+● embedding层的输出可以是：word embedding（文本任务）
+# Yudi-qh
+import math
+import torch
+import torch.nn as nn
+
+# 构建embedding层
+class Embeddings(nn.Module):
+    '''
+    d_model:word embedding的维度
+    vocab:词表的大小
+    '''
+    def __init__(self,d_model,vocab):
+        super(Embeddings, self).__init__()
+        # lut:lookup table
+        # 获得一个词嵌入对象self.lut
+        self.lut=nn.Embedding(vocab,d_model)
+        self.d_model=d_model
+
+    def forward(self,x):
+        '''
+        x:代表输入给模型的单词文本通过词表映射后的one-hot向量
+        '''
+        embedds=self.lut(x)
+        return embedds*math.sqrt(self.d_model)
+位置编码
+transformer是同时输入，并行推理，所以缺失了位置信息
+位置编码可以是固定的，也可以是可学习的参数
+最终模型的输入是若干个时刻对应的embedding，每个时刻对应一个embedding，既包含了本身的语义信息，也包含了当前时刻在整个句子中的位置信息
+
+这里采用固定的位置编码：
+
+位置编码长度=embedding层，设置为512
+
+# 位置编码模块
+class PositionalEncoding(nn.Module):
+    def __init__(self,d_model,dropout,max_len=5000):
+        super(PositionalEncoding, self).__init__()
+        # max_len：每个句子的最大长度
+        self.dropout=nn.Dropout(p=dropout)
+
+        # 计算位置编码,这里的计算方式和公式不同但等价
+        # 这样计算是为了避免中间的数值计算结果超出float的范围
+        pe=torch.zeros(max_len,d_model)
+        position=torch.arange(0,max_len).unsqueeze(1)
+        div_term=torch.exp(torch.arange(0,d_model,2))*-(math.log(10000.0)/d_model)
+        # [:,0::2]选中所有行，对于每一行中的元素，索引从0开始，步长为2
+        # 即返回每一行中偶数索引的元素
+        pe[:,0::2]=torch.sin(position*div_term)
+        pe[:,1::2]=torch.cos(position*div_term)
+        pe=pe.unsqueeze(0)
+        '''
+        将tensor注册为模型的缓冲区(buffer)，即该张量不会被视为参数
+        不需要计算梯度，不会在反向传播中更新
+        '''
+        self.register_buffer('pe',pe)
+    def forward(self,x):
+        x=x+Variable(self.pe[:,:x.size(1)],requires_grad=False)
+        return self.dropout(x)
+encoder
+推理时encoder只推理一次，decoder类似rnn不断循环推理，生成预测结果
+
+最开始的时候，将编码器提取的特征以及一个句子起始符传给decoder，decoder会输出第一个单词I，然后将第一个单词I输入给decoder，再预测下一个单词love,再将 I love喂给decoder
+encoder的作用：对输入进行特征提取，为解码器提供语义信息
+
+注意transformer encoder decoder是自注意力
+# encoder
+# 定义一个clones函数，便于将某个结构复制n份
+def clones(module,N):
+    return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
+
+class Encoder(nn.Module):
+    def __init__(self,layer,N):
+        super(Encoder, self).__init__()
+        # 将layer堆叠6层
+        self.layers=clones(layer,N)
+        self.norm=LayerNorm(layer.size)
+
+    def forward(self,x,mask):
+        for layer in self.layers:
+            x=layer(x,mask)
+        return self.norm(x)
+
+# 残差连接实现
+class SublayerConnection(nn.Module):
+    def __init__(self,size,dropout):
+        super(SublayerConnection, self).__init__()
+        self.norm=LayerNorm(size)
+        self.dropout=nn.Dropout(dropout)
+
+    def forward(self,x,sublayer):
+        # 论文的方案
+        # sublayer_out=sublayer(x)
+        # x_norm=self.norm(x+self.dropout(sublayer_out))
+
+        # 调整后的版本
+        sublayer_out=sublayer(x)
+        sublayer_out=self.dropout(sublayer_out)
+        x_norm=x+self.norm(sublayer_out)
+        return x_norm
+
+class EncoderLayer(nn.Module):
+    # 两个sublayer：self-attention和feed forward
+    def __init__(self,size,self_attn,feed_forward,dropout):
+        super(EncoderLayer, self).__init__()
+        self.self_attn=self_attn
+        self.feed_forward=feed_forward
+        self.sublayer=clones(SublayerConnection(size,dropout),2)
+        self.size=size
+
+    def forward(self,x,mask):
+        x=self.sublayer[0](x,lambda x:self.self_attn(x,x,x,mask))
+        z=self.sublayer[1](x,self.feed_forward)
+        return z
+注意力机制
+注意力计算：需要三个输入qkv，通过公式得到注意力的计算结果
+
+attention score：softmax（）这部分
+为的维度大小。这个除法被称为Scale。当很大时，的乘法结果方差变大，进行Scale可以使方差变小，训练时梯度更新更稳定。
+即scale用于防止点积结果过大，避免梯度消失或爆炸
+计算流程图：
+
+当前时刻的注意力计算结果，是value的加权和
+权重：query和key做内积得到相似度
+# 注意力机制
+def attention(q,k,v,mask=None,dropout=None):
+    # 取query最后一维的大小，对应词嵌入维度
+    d_k=q.size(-1)
+    # 按照注意力公式，将query和key的转置相乘
+    # 这里key将最后两个维度转置，再除以缩放系数得到注意力得分张量scores
+    scores=torch.matmul(q,k.transpose(-2,-1))/math.sqrt(d_k)
+
+    # 判断是否使用掩码张量
+    if mask is not None:
+        scores=scores.masked_fill(mask==0,-1e9)
+
+    # 对scores最后一维进行softmax，得到最终的注意力张量
+    p_attn=F.softmax(scores,dim=-1)
+
+    # 判断是否使用dropout
+    if dropout is not None:
+        p_attn=dropout(p_attn)
+    return torch.matmul(p_attn,v),p_attn
+多头注意力
+不同的头可以关注到同一个词不同的语义，比如bank：银行、河岸
+# 多头注意力
+class MultiHeadAttention(nn.Module):
+    def __init__(self,num_heads,d_model,dropout=0.1):
+        super(MultiHeadAttention, self).__init__()
+        # 判断num_heads能否被d_model整除，因为需要给每个头分配等量的词特征
+        # 即word embedding/head
+        assert d_model%num_heads==0
+        # 得到每个头的word embedding维度
+        self.d_k=d_model//num_heads
+        self.num_heads=num_heads
+        # 通过linear，即w矩阵得到qkv,还有最后拼接的wo矩阵
+        self.linears=clones(nn.Linear(d_model,d_model),4)
+        # self.attn代表最后得到的注意力张量，现在还没有结果所以为None
+        self.attn=None
+        self.dropout=nn.Dropout(p=dropout)
+
+    def forward(self,q,k,v,mask=None):
+        if mask is not None:
+            mask=mask.unsqueeze(1)
+            # 获得一个变量，代表有多少样本
+            nbatches=q.size(0)
+
+            # 这里transpose是为了让句子长度维度和词向量维度相邻
+            # 注意力机制才能找到语义和句子位置的关系
+            # 得到每个头的输入qkv
+            q,k,v=\
+            [l(x).view(nbatches,-1,self.num_heads,self.d_k).transpose(1,2)
+             for l,x in zip(self.linears,(q,k,v))]
+
+            x,self.attn=attention(q,k,v,mask=mask,dropout=self.dropout)
+
+            # 得到每个头计算的结果组成的4维张量，需要将其转换为输入的形状方便后续计算
+            x=x.transpose(1,2).contiguous()\
+                .view(nbatches,-1,self.d_k*self.num_heads)
+            # 使用linears中的最后一个线性变换（wo矩阵）得到最终的多头注意力的输出
+            return self.linears[-1](x)
+前馈全连接层
+包含两个线性变换和一个ReLU
+
+attention模块中每个时刻的输出都整合了所有时刻的信息
+但是ffn每个时刻与其他时刻的信息无关
+# 前馈全连接层
+class PositionwiseFeedForward(nn.Module):
+    def __init__(self,d_model,d_ff,dropout=0.1):
+        super(PositionwiseFeedForward, self).__init__()
+        # 希望通过ffn全连接层后输出和输入维度一致，d_ff就是第二个linear的输入
+        self.w_1=nn.Linear(d_model,d_ff)
+        self.w_2=nn.Linear(d_ff,d_model)
+        self.dropout=nn.Dropout(dropout)
+
+    def forward(self,x):
+        return self.w_2(self.dropout(F.relu(self.w_1(x))))
+norm层
+# Norm层:将数值规范在合理范围内
+class LayerNorm(nn.Module):
+    def __init__(self,feature_size,eps=1e-6):
+        # feature_size：词嵌入的维度
+        # eps：足够小的数，防止归一化公式分母为0，默认为1e-6
+        super(LayerNorm, self).__init__()
+        self.a_2=nn.Parameter(torch.ones(feature_size))
+        self.b_2=nn.Parameter(torch.zeros(feature_size))
+        self.eps=eps
+
+    def forward(self,x):
+        # x来自上一层的输出，首先对x求最后一个维度的均值，并保持输入输出维度一致
+        # 接着再求最后一个维度的标准差
+        mean=x.mean(-1,keepdim=True)
+        std=x.std(-1,keepdim=True)
+        return self.a_2*(x-mean)/(std+self.eps)+self.b_2
+掩码
+掩码：一般只有0和1，代表遮掩和不遮掩
+掩码的作用：
+● encoder中的掩码：屏蔽掉无效的padding区域
+● decoder中的掩码：屏蔽掉来自未来的信息+屏蔽掉无效的padding区域
+屏蔽掉无效的padding区域：一个batch中不同样本的输入长度不同，需要设置一个max_length，然后对空白区域填充，但是填充的区域在计算时无意义，所以需要mask掉
+屏蔽掉未来信息：attention会获取所有时刻的信息，需要屏蔽掉未来信息
+0：mask的位置，1：保留的位置
+掩码通常设置为上三角矩阵，其中所有对角线以下的元素都是0，以确保模型在预测时不会接收到未来的信息
+# 生成屏蔽未来信息的mask掩码张量：attention mask
+# size是掩码张量最后两个维度的大小
+def subsequent_mask(size):
+    attn_shape=(1,size,size)
+    # 用np.ones向这个shape中添加1，形成上三角矩阵
+    '''
+    ones函数创建一个形状为attn_shape的全1数组。
+    triu函数将这个数组转换为上三角矩阵，其中对角线上方的元素为1，其余元素为0，
+    astype函数将结果数组的数据类型转换为无符号8位整数（uint8）。
+    subsequent_mask就是一个形状为attn_shape的上三角矩阵，
+    '''
+    subsequent_mask=np.triu(np.ones(attn_shape),k=1).astype('uint8')
+    # 将numpy转换成tensor
+    return torch.from_numpy(subsequent_mask)==0
+decoder
+解码器作用：根据编码器结果及上一次预测结果，预测下一个结果
+解码器也是n个相同layer堆叠
+细节：
+● masked multi-head attention和编码器中的完全一致
+● 第二个多头注意力中，q来自上一个子层，k和v来自编码器的输出
+# decoder
+class Decoder(nn.Module):
+    def __init__(self,layer,N):
+        super(Decoder, self).__init__()
+        self.layers=clones(layer,N)
+        self.norm=LayerNorm(layer.size)
+
+    def forward(self,x,memory,src_mask,tgt_mask):
+        # memory：编码器的输出 ，后两个分别代表源数据和目标数据的掩码张量
+        for layer in self.layers:
+            x=layer(x,memory,src_mask,tgt_mask)
+        return self.norm(x)
+
+
+class DecoderLayer(nn.Module):
+    def __init__(self,size,self_attn,src_attn,feed_forward,dropout):
+        '''
+        :param size: 词嵌入的维度大小，同时也代表解码器的尺寸
+        :param self_attn: 多头自注意力
+        :param src_attn: 多头注意力
+        '''
+        super(DecoderLayer, self).__init__()
+        self.size=size
+        self.self_attn=self_attn
+        self.src_attn=src_attn
+        self.feed_forward=feed_forward
+        self.sublayer=clones(SublayerConnection(size,dropout),3)
+
+    def forward(self,x,memory,src_mask,tgt_mask):
+        '''
+        :param x:上一层的输入
+        :param memory:编码器的输出，存储了语义信息
+        :param src_mask:源数据掩码张量
+        :param tgt_mask:目标数据掩码张量
+        
+        '''
+        m=memory
+        # x传入第一个子层,自注意力，所以q,k,v=x,此时mask是为了屏蔽未来信息
+        x=self.sublayer[0](x,lambda x:self.self_attn(x,x,x,tgt_mask))
+        # 第二个子层,普通注意力机制,此时mask是为了屏蔽掉无意义的padding
+        x=self.sublayer[1](x,lambda x:self.src_attn(x,m,m,src_mask))
+        # 最后一个层，FFN
+        return self.sublayer[2](x,self.feed_forward)
+
+
+模型输出
+
+linear：线性变换，转换维度，转换后的维度对应着输出类别的个数，如果是翻译任务，就对应的是字典的大小
+# 模型输出
+class Generator(nn.Module):
+    def __init__(self,d_model,vocab):
+        super(Generator, self).__init__()
+        self.proj=nn.Linear(d_model,vocab)
+
+    def forward(self,x):
+        return F.log_softmax(self.proj(x),dim=-1)
+结构搭建
+# 模型构建
+class EncoderDecoder(nn.Module):
+    def __init__(self,encoder,decoder,src_embed,tgt_embed,generator):
+        super(EncoderDecoder, self).__init__()
+        self.encoder=encoder
+        self.decoder=decoder
+        self.src_embed=src_embed
+        self.tgt_embed=tgt_embed
+        self.generator=generator
+
+    def forward(self,src,tgt,src_mask,tgt_mask):
+        # src：源数据，tgt：目标数据
+        memory=self.encode(src,src_mask)
+        res=self.decode(memory,src_mask,tgt,tgt_mask)
+        return res
+
+    def encode(self,src,src_mask):
+        src_embedds=self.src_embed(src)
+        return self.encoder(src_embedds,src_mask)
+
+    def decode(self,memory,src_mask,tgt,tgt_mask):
+        tgt_embedds=self.tgt_embed(tgt)
+        return self.decoder(tgt_embedds,memory,src_mask,tgt_mask)
+
+def make_model(src_vocab,tgt_vocab,N=6,d_model=512,d_ff=2048,num_heads=8,dropout=0.1):
+    '''
+    N:编码器和解码器堆叠的次数
+    d_ff:FFN中embedding的维度，默认2048
+    '''
+    c=copy.deepcopy
+    attn=MultiHeadAttention(nun_heads,d_model)
+    ff=PositionwiseFeedForward(d_model,d_ff,dropout)
+    position=PositionalEncoding(d_model,dropout)
+    model=EncoderDecoder(
+        Encoder(EncoderLayer(d_model,c(attn),c(ff),dropout),N),
+        Decoder(DecoderLayer(d_model,c(attn),c(attn),c(ff),dropout)),
+        nn.Sequential(Embeddings(d_model,src_vocab),c(position)),
+        nn.Sequential(Embeddings(d_model,tgt_vocab),c(position)),
+        Generator(d_model,tgt_vocab)
+    )
+    for p in model.parameters():
+        if p.dim()>1:
+            nn.init.xavier_uniform_(p)
+    return model
+李宏毅transformer
+self-attention
+rnn输入部分：
+把一个句子中的每个词都表示成一个向量，方法：one-hot encoding or word embedding
+one-hot encoding的缺点：不包含语义信息，看不到类别之间的联系，如这里的狗和猫都是动物
+
+每个句子就是一个不同长度的向量的集合
+word embedding：给每一个词一个包含语义信息的向量
+
+rnn输出部分：
+第一种输出：输入n个向量就输出n个label，如pos tagging：词性标注，标注每个词是动词还是名词
+第二种输出：输入一个序列，只输出一个label，如文本情感判断
+第三种输出：机器自己决定输出多少个label，如seq2seq机器翻译
+
+self-attention：
+self-attention会将整个sequence输入，输入几个向量就输出几个向量，输出的向量考虑了整个句子的信息
+
+
+
+
+记得还要自己和自己计算相似度
+这里softmax可以被替换成别的激活函数
+● 得到α'之后，要根据attention score抽取内容，即α分别*Wv矩阵得到v
+● 然后让v和α'（attention score）相乘加权求和，即最终输出一个加权和
+
+
+
+输出向量b是同时计算出来的
+
+
+attention score的计算：
+
+
+
+
+wqkv三个矩阵是可学习的参数
+multi-head attention
+head：超参数
+多头注意力：一个词输入对应多个qkv，即多义词
+q1之和k1算，不考虑k2，1对1,2对2
+
+positional encoding
+位置编码可以是固定的(用公式计算)，也可以是learnable parameter
+
+
+
+rnn无法并行处理，而self-attention可以同时输出，速度更快
+transformer
+transformer是一个seq2seq的model，主要处理输出和输入不等长的问题，如机器翻译
+
+BOS：begin of sentence
+masked attention
+
+q2只和k1和k2做计算
+
+NAT：non-atuoregressive model
+
+FC：fully connected Network
+交叉注意力
+
+
+即query来自于decoder，key和value来自于encoder
+transformer之前就有了cross-attention，但没有self-attention
+交叉注意力可以有好几种方式
+
 
 
 [BERT](https://www.yuque.com/yuqueyonghuftqtcn/th8glr/iftdmwgr7ia2zwrk)
